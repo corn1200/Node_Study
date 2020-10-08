@@ -9,7 +9,6 @@ const port = 8000
 app.listen(port, () => {
     console.log(`server is running on port: ${port}`)
     // `는 줄내림과 변수를 표현할 수 있다
-    sdfdsf
 })
 
 // app.get('/', (req, res) => {
