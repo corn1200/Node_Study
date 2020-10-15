@@ -11,14 +11,14 @@ app.listen(port, () => {
     // `는 줄내림과 변수를 표현할 수 있다
 })
 
-// app.get('/', (req, res) => {
-//     res.send('I am working!!')
-// })
+app.get('/', (req, res) => {
+    res.send('I am working!!')
+})
 
-// app.get('/robot', (req, res) => {
-//     // get으로 post값을 받는다
-//     res.send('I am robot!!')
-// })
+app.get('/robot', (req, res) => {
+    // get으로 post값을 받는다
+    res.send('I am robot!!')
+})
 
 // localhost는 자기 컴퓨터를 가르킨다
 // require는 module.export를 불러온다
