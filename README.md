@@ -365,3 +365,12 @@ callback()
 하지만, 실제로 콜백의 용도와 구현 방법은 무궁무진하고 javaScript나 js 파생 시스템 계열에서 너무도 흔한 프로그래밍 기법입니다.
 
 만약, 콜백의 용도를 Node.js 에 대한 내용과 함께 알고 싶다면 위에 있는 'Node.js에 대하여'를 읽어주세요.
+
+# 10월 15일자 수업
+await promise async resolve reject 비동기함수 동기함수
+get post
+app.use(express.json())
+Returns middleware that only parses json and only looks at requests where the Content-Type header matches the type option.
+app.use(express.urlencoded())
+Returns middleware that only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option
+nodemon
