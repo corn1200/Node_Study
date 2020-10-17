@@ -422,7 +422,7 @@ Bye
 # 3
 
 function setting() {
-    var data = 'no data'
+    let data = 'no data'
     setTimeout(function() {
         data = 'data'
     }, 3000)
@@ -445,7 +445,7 @@ console.log(setting())
 
 function setting(callbackFunc) {
   // 1. 인자로 받은 callbackFunc가 어떤 타입인지 어떤 용도인지 '인자를 받겠다' 라고 선언한 시점에선 모릅니다.
-    var data = 'no data'
+    let data = 'no data'
     setTimeout(callbackFunc(data), 3000)
     // 2. callbackFunc의 뒤에 () 괄호가 붙으면서 함수라는 것이 정의됩니다.
 }
@@ -479,17 +479,242 @@ $.get('url', function(response) {
 
 서비스를 개발하다 보면 서버에서 데이터를 받아와 화면에 표시하기까지 여러 과정을 거칩니다. 이 모든 과정이 비동기로 처리되야 한다면 위와 같이 콜백 안에 콜백이 물고 늘어지는 식의 코드가 짜여지게 됩니다.
 
-이러한 구조는 가독성도 떨어지고 로직 변경도 어렵습니다. 위와 같은 코드 구조를 흔히 콜백 지옥이라고도 합니다.
+이러한 구조는 가독성도 떨어지고 로직 변경도 어렵습니다. 위와 같은 코드 구조를 흔히 콜백 지옥이라고 합니다.
 
 Promise와 async, await의 개념을 알면 콜백 지옥을 해결할 수 있습니다.
 
 ## Promise
 
+Promise는 JavaScript 비동기 처리에 사용되는 객체입니다.
+
+Promise는 주로 서버에서 받아온 데이터를 화면에 표시할 때 사용합니다. 만약 비동기 처리 된 함수나 API를 실행하여 데이터를 받아오기도 전에 화면에 데이터를 표시하려 한다면 오류가 발생하거나 개발자 혹은 사용자가 원치 않았던 상황이 벌어질 것입니다. Promise를 사용하여 이러한 문제를 해결할 수 있습니다.
+
+```
+function setting(callbackFunc) {
+    let data = 'no data'
+    setTimeout(callbackFunc(data), 3000)
+}
+
+setting(function(data) {
+    data = 'data'
+    console.log(data)
+})
+```
+
+위 코드는 data의 값을 'data'로 재할당하고 출력해주는 코드에 callback 패턴을 적용한 모습입니다.
+
+```
+function setting() {
+    let data = 'no data'
+    return new Promise([1]function(resolve, reject) {
+      data = 'data'
+      setTimeout(function() {
+        resolve(data)
+      }, 3000)
+    })
+}
+
+setting().then([2]function(data) {
+  console.log(data)
+})
+```
+
+위 코드는 Promise 객체를 이용하여 코드를 작성했습니다. Promise 생성자에 [1]함수를 인자로 전달합니다. 또 인자로 받은 [1]함수에는 두개의 인자를 받는데 각각 resolve와 reject입니다. data의 값을 'data'로 재할당하고 setTimeout으로 3초 뒤에 resolve 함수 즉 then의 인자로 받은 [2]함수를 실행시켰고 resolve에 전달한 인자가 그대로 then의 인자로 받은 [2]함수의 인자로 전달된 모습을 볼 수 있습니다.
+
+(* 참고: 실제 코드를 구동할 때는 [] 부분은 삭제해야합니다.)
+
+Promise 객체를 사용할 때 알아야 하는 가장 기본적인 개념이 바로 Promise의 상태(states)입니다. 여기서 말하는 상태란 Promise의 처리 과정을 의미합니다. new Promise() 생성자로 Promise 객체를 생성하고 종료될 때까지 3가지 상태를 갖습니다.
+
+* Pending(대기): 비동기 처리 로직이 아직 완료되지 않은 상태
+
+* Fulfilled(이행): 비동기 처리가 완료되어 Promise가 결과 값을 반환해준 상태
+
+* Rejected(실패): 비동기 처리가 실패하거나 오류가 발생한 상태
+
+## Pending(대기)
+
+```
+new Promise();
+```
+
+위와 같이 Promise 객체의 생성자를 호출하면 Pending(대가) 상태가 됩니다.
+
+```
+new Promise(function(resolve, reject) {
+  . . .
+})
+```
+
+생성자를 호출할 때 콜백 함수를 선언할 수 있고, 콜백 함수의 인자로 resolve, reject를 받습니다.
+
+## Fulfilled(이행)
+
+여기서 콜백 함수의 인자 resolve 함수를 아래와 같이 실행하면 Fulfilled(이행) 상태가 됩니다.
+
+```
+new Promise(function(resolve, reject) {
+  resolve()
+})
+```
+
+이행 상태가 되면 아래와 같이 then() 을 이용하여 처리 결과 값을 받을 수 있습니다.
+
+```
+function gettingData() {
+  return new Promise(function(resolve, reject) {
+    let data = 50
+    resolve(data)
+  })
+}
+
+gettingData().then(function(resolveData) {
+  console.log(resolveData)
+})
+
+결과: 50
+```
+
+resolve 함수를 실행하면 then에 있는 콜백 함수가 실행되는 걸 보실 수 있습니다.
+
+## Rejected(실패)
+
+new Promise() 생성자로 Promise 객체를 생성하면 콜백 함수 인자로 resolve와 reject를 전달 받습니다. reject를 호출하면 Rejected(실패) 상태가 됩니다.
+
+```
+new Promise(function(resolve, reject) {
+  reject()
+})
+```
+
+위와 같이 reject 함수가 실행할 수 있습니다.
+
+```
+function gettingData() {
+  return new Promise(function(resolve, reject) {
+    reject(new Error("OMG SUPER ERROR HAS BEGAN"))
+  })
+}
+
+gettingData().then().catch(function(err) {
+  console.error(err)
+})
+
+결과: Error : OMG SUPER ERROR HAS BEGAN
+```
+
+resolve가 then으로 연결되듯이 reject가 생성한 Error 객체는 catch로 연결되어 콜백 함수를 실행시킵니다.
+
+배운 내용을 바탕으로 몇가지 예제를 봅시다.
+
+```
+function gettingData() {
+  let data
+  return new Promise(function(resolve, reject) {
+    data = 'data'
+    setTimeout(function() {
+      if (data != null) {
+        resolve(data)
+      }
+      reject(new Error("OMG SUPER ERROR HAS BEGAN))
+    }, 3000)
+  })
+}
+
+gettingData().then(function(data) {
+  console.log(data)
+}).catch(function(err) {
+  console.error(err)
+})
+```
+
+위 코드는 data의 값이 null이 아니면 then의 콜백 함수를 실행시켜 data를 출력하고 null이라면 catch의 콜백 함수를 실행시켜 인자로 전달받은 Error 객체를 출력합니다.
+
+```
+function gettingData() {
+  return new Promise({
+    . . .
+  })
+}
+
+gettingData()
+  .then(function(data) {
+    . . .
+  })
+  .then(function(data) {
+    . . .
+  })
+  .then(function(data) {
+    . . .
+  })
+```
+
+위의 코드와 같은 구조로 then을 여러개 연결하여 코드를 구성할 수도 있습니다.
+
+실제로는 아래와 같이 작성합니다.
+
+```
+function gettingData() {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      resolve(1)
+    }, 2000)
+  })
+}
+
+gettingData()
+  .then(function(data) {
+    console.log(data) // 1
+    return data + 10
+  })
+  .then(function(data) {
+    console.log(data) // 11
+    return data + 20
+  })
+  .then(function(data) {
+    console.log(data) // 31
+  })
+
+결과:
+1 출력
+11 출력
+31 출력
+```
+
+위 코드의 then은 계속 이어지면서 return 받은 값을 받거나 혹은 받지 않고 실행된다.
+
+```
+let userData = {
+  id: 'testID',
+  pw: 'testPW'
+}
+
+function parseVal() {
+  return new Promise({
+    // 데이터를 파싱하는 내용
+  })
+}
+
+function auth() {
+  return new Promise({
+    // 인증하는 내용
+  })
+}
+
+function screen() {
+  return new Promise({
+    // 화면을 나타내는 내용
+  })
+}
+
+testMethod(userData)
+  .then(parseVal)
+  .then(auth)
+  .then(screen)
+```
+
+위와 같이 유저의 정보를 이용하여 필요한 동작을 then을 통해 연속적으로 거쳐서 수행할 수 있습니다.
 
 
-
-
-await promise async resolve reject
 
 get post
 
@@ -501,4 +726,4 @@ Returns middleware that only parses urlencoded bodies and only looks at requests
 
 nodemon
 
-# 읽을거리
+화살표 함수
