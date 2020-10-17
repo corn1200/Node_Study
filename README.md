@@ -186,11 +186,11 @@ __"비동기 이벤트 주도 javaScript 런타임으로써 Node.js 는 확장�
 
    Node.js는 싱글 스레드와 이벤트 루프라는 구조를 가지고 있습니다.
 
-   이를 통해 javaScript의 callback 이라는 강점을 살려서 이벤트 루프가 계속 이벤트(I/O, 입출력 또는 요청)를 확인하면서 해당 이벤트가 실행되면 실행이 완료되길 기다리지 않고 워커 스레드라는 장소를 마련하여 별개로 이벤트를 실행시킨다.
+   이를 통해 javaScript의 callback 이라는 강점을 살려서 이벤트 루프가 계속 이벤트(I/O, 입출력 또는 요청)를 확인하면서 해당 이벤트가 실행되면 실행이 완료되길 기다리지 않고 워커 스레드라는 장소를 마련하여 별개로 이벤트를 실행시킵니다.
 
-   또한, 이벤트가 끝나는걸 기다리지 않고 이벤트 루프가 다시 해당 이벤트로 돌아가지 않고 다른 요청을 기다린다.
+   또한, 이벤트가 끝나는걸 기다리지 않고 이벤트 루프가 다시 해당 이벤트로 돌아가지 않고 다른 요청을 기다립니다.
 
-   바로 callback을 사용하여 미리 정의해둔 함수가 이벤트의 실행 이후에 호출되어 남은 작업을 완료하도록 구현하는 것이다.
+   바로 callback을 사용하여 미리 정의해둔 함수가 이벤트의 실행 이후에 호출되어 남은 작업을 완료하도록 구현하는 것입니다.
 
    정리하자면 Node.js로 구현된 애플리케이션은 동기적으로 하나의 요청 혹은 이벤트를 붙잡고 끝날 때 까지 멈춰 있는 것이 아닌 비동기적으로 요청 혹은 이벤트 발생시 단지 실행(워커 스레드)만 시키고 애플리케이션은 동작을 멈추지 않습니다.
 
@@ -367,10 +367,138 @@ callback()
 만약, 콜백의 용도를 Node.js 에 대한 내용과 함께 알고 싶다면 위에 있는 'Node.js에 대하여'를 읽어주세요.
 
 # 10월 15일자 수업
-await promise async resolve reject 비동기함수 동기함수
+
+# 1. 비동기 처리(Promise, async, await)에 대하여
+
+비동기 처리는 쉽게 말해 특정 코드의 연산(실행)이 끝날 때까지 전체 코드의 흐름을 멈추지 않고 다음 코드를 먼저 실행하는 방식을 의미합니다.
+
+우선 Web Api의 한 종류인 setTimeout() 을 예시로 설명하겠습니다.
+
+```
+console.log('Hello')
+
+setTiemeout(function() {
+  console.log('Work')
+}, 5000)
+
+console.log('Bye')
+```
+
+결과는
+
+```
+// #1
+
+Hello 출력
+Bye 출력
+(5초 후에)
+Work 출력
+```
+
+setTimeout() 의 두번째 인자로 전달된 5000(ms단위)이라는 값으로 인하여 JavaScript 런타임이 setTimeout() 을 조우한 시점에서 첫번째 인자로 전달된 함수를 실행시키기 까지 5초가 걸립니다.
+
+그렇다면 상식적으로
+
+```
+// #2
+
+Hello 출력
+(5초 후에)
+Work
+Bye
+```
+
+와 같은 결과가 나와야 하는데 #1과 같은 결과가 나온 이유는 setTimeout() 이 자체적으로 비동기 처리가 되어있어 특정 코드의 연산(실행)이 끝날 때까지 멈춰있지 않고 다음 코드를 먼저 실행하기 때문입니다.
+
+(* 참고: Web Api는 웹 환경에서 사용할 수 있는 API(Application Programing Interpace)로 개발자가 시스템의 일부를 구현하는 수고를 덜어주고 플랫폼 환경이나 클라이언트 환경에 제한되지 않고 웹 환경에서 동작합니다.)
+
+비동기 처리와 연관 깊은 개념으로는 callback 패턴이 있습니다.
+
+개발자의 입장에서나 사용자의 입장에서나 특정 행동이 완료된 후에 다음 행동으로 넘어가길 원할 때가 있습니다.
+
+그럴 때 callback 패턴으로 원하는 동작을 구현할 수 있습니다.
+
+```
+# 3
+
+function setting() {
+    var data = 'no data'
+    setTimeout(function() {
+        data = 'data'
+    }, 3000)
+    return data
+}
+
+console.log(setting())
+
+결과: no data 출력
+```
+
+우리가 원하는 결과는 data에 'data'라는 값이 들어간 후에 그 값이 출력되는 것입니다.
+
+하지만 setTimeout() 은 비동기 처리된 함수이기 때문에 data에 새로운 값을 할당하기 전에 return되어 console.log() 로 출력됩니다.
+
+그리고 JavaScript 런타임이 setTimeout() 을 조우한 시점에서 3초가 지난 후에야 data의 값을 새로이 할당합니다.
+
+```
+# 4
+
+function setting(callbackFunc) {
+  // 1. 인자로 받은 callbackFunc가 어떤 타입인지 어떤 용도인지 '인자를 받겠다' 라고 선언한 시점에선 모릅니다.
+    var data = 'no data'
+    setTimeout(callbackFunc(data), 3000)
+    // 2. callbackFunc의 뒤에 () 괄호가 붙으면서 함수라는 것이 정의됩니다.
+}
+
+setting(function(data) {
+    // 3. setting의 인수로 넘겨줄 callbackFunc가 함수의 형태라는 것을 알았으니 함수를 만들어 인수로 넘겨줍니다.
+    data = 'data'
+    console.log(data)
+})
+
+결과: data 출력
+```
+
+이를 위의 코드와 같이 callback 패턴을 사용하여 선처리가 필요한 작업을 한 후에 다음 행동을 콜백 함수로 실행하여 문제 없이 원하는 동작을 실행시킬 수 있습니다.
+
+(* 참고: 인자의 이름이나 변수의 이름과는 관계 없이 #4와 같은 함수 사용법을 callback 패턴이라고 부릅니다.)
+
+이런 비동기 처리 로직을 위해 콜백 함수를 연속해서 사용할 때 발생하는 문제들이 있습니다.
+
+```
+$.get('url', function(response) {
+	parseValue(response, function(id) {
+		auth(id, function(result) {
+			display(result, function(text) {
+				console.log(text);
+			});
+		});
+	});
+});
+```
+
+서비스를 개발하다 보면 서버에서 데이터를 받아와 화면에 표시하기까지 여러 과정을 거칩니다. 이 모든 과정이 비동기로 처리되야 한다면 위와 같이 콜백 안에 콜백이 물고 늘어지는 식의 코드가 짜여지게 됩니다.
+
+이러한 구조는 가독성도 떨어지고 로직 변경도 어렵습니다. 위와 같은 코드 구조를 흔히 콜백 지옥이라고도 합니다.
+
+Promise와 async, await의 개념을 알면 콜백 지옥을 해결할 수 있습니다.
+
+## Promise
+
+
+
+
+
+await promise async resolve reject
+
 get post
+
 app.use(express.json())
 Returns middleware that only parses json and only looks at requests where the Content-Type header matches the type option.
+
 app.use(express.urlencoded())
 Returns middleware that only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option
+
 nodemon
+
+# 읽을거리
