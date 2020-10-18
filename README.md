@@ -941,3 +941,89 @@ package.json 파일에서 "scripts" 부분에 "dev"를 추가하고 아래와 �
 
 ## 화살표 함수
 
+화살표 함수로 함수를 더욱 간단하게 만들 수 있습니다.
+
+평소에 JavaScript에서 함수를 만들 때는
+
+```
+let func = function(par1, par2, par3, . . .) {
+  return anyData
+}
+```
+
+위와 같은 방식을 사용합니다.
+
+화살표 함수를 사용하면
+
+```
+let sumInt = function(a, b) {
+  return a + b
+}
+
+console.log(sumInt(1, 2))
+
+결과: 3
+```
+
+이러한 함수를
+
+```
+let sumInt = (a, b) => a + b
+
+console.log(sumInt(1, 2))
+
+결과: 3
+```
+
+이렇게 변형하여 더 간결하게 코드를 작성할 수 있습니다.
+
+명시적으로 return을 하지 않았음에도 화살표로 가르킨 계산의 결과를 반환합니다.
+
+* 인수가 하나뿐이라면 인수를 감싸는 괄호를 생략할 수 있습니다.
+
+```
+let sum = n => n + 1
+
+console.log(sum(3))
+
+결과: 4
+```
+
+* 인수가 하나도 없다면 괄호를 비워둘 수 있습니다. 하지만 괄호를 생략할 순 없습니다.
+
+```
+let sum = () => 1 + 2
+
+console.log(sum())
+
+결과: 3
+```
+
+이러한 방식을 활용하여 더욱 동적이지만 간결한 함수를 만들 수 있습니다.
+
+```
+let age = 18
+
+let welcome = age => {
+  (age < 18) ? console.log(`${age}살이구나 안녕!`) : console.log(`${age}살이시군요 안녕하세요!`)
+}
+
+welcome(age)
+
+결과: 18살이시군요 안녕하세요!
+```
+
+또한 여러 줄의 화살표 함수를 쓸 때는 중괄호로 감싸야 하며 명시적으로 return을 반환해주어야 합니다.
+
+```
+let sum = (a, b) => {
+  let result = a + b
+  return result
+}
+
+console.log(sum(1, 2))
+
+결과: 3
+```
+
+이처럼 다양한 방식으로 화살표 함수를 활용할 수 있고 익숙해지면 다양한 동작을 간결하게 구현할 수 있습니다.
