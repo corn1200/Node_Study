@@ -531,7 +531,7 @@ Promise 객체를 사용할 때 알아야 하는 가장 기본적인 개념이 �
 
 * Rejected(실패): 비동기 처리가 실패하거나 오류가 발생한 상태
 
-## Pending(대기)
+## 1. Pending(대기)
 
 ```
 new Promise();
@@ -547,7 +547,7 @@ new Promise(function(resolve, reject) {
 
 생성자를 호출할 때 콜백 함수를 선언할 수 있고, 콜백 함수의 인자로 resolve, reject를 받습니다.
 
-## Fulfilled(이행)
+## 2. Fulfilled(이행)
 
 여기서 콜백 함수의 인자 resolve 함수를 아래와 같이 실행하면 Fulfilled(이행) 상태가 됩니다.
 
@@ -576,7 +576,7 @@ gettingData().then(function(resolveData) {
 
 resolve 함수를 실행하면 then에 있는 콜백 함수가 실행되는 걸 보실 수 있습니다.
 
-## Rejected(실패)
+## 3. Rejected(실패)
 
 new Promise() 생성자로 Promise 객체를 생성하면 콜백 함수 인자로 resolve와 reject를 전달 받습니다. reject를 호출하면 Rejected(실패) 상태가 됩니다.
 
@@ -714,6 +714,141 @@ testMethod(userData)
 
 위와 같이 유저의 정보를 이용하여 필요한 동작을 then을 통해 연속적으로 거쳐서 수행할 수 있습니다.
 
+## async & await
+
+async와 await은 기존의 비동기 처리 방식인 callback 패턴과 Promise의 단점을 보완하고 개발자가 읽기 좋은 코드를 작성할 수 있게 도와줍니다.(확장성 증가)
+
+```
+function logName() {
+  let user = fetchUser('domain.com/users/1')
+  if (user.id === 1) {
+    console.log(user.name)
+  }
+}
+```
+
+위 코드의 fetchUser() 함수는 서버에서 데이터를 받아오는 HTTP 통신 코드라고 가정합니다. 
+
+일반적으로 JavaScript의 비동기 처리 코드는 아래와 같이 콜백을 사용해야 코드의 실행 순서를 보장 받을 수 있습니다.
+
+```
+function logName() {
+  let user = fetchUser('domain.com/users/1', function(user) {
+    if (user.id === 1) {
+      console.log(user.name)
+    }
+  })
+}
+```
+
+callback 패턴에 익숙해진 사람이라면 위와 같은 방식을 어려워하지 않겠지만, 익숙하지 않은 사람 혹은 더욱 직관적인 구조를 원하는 사람들에겐 불편할 수도 있고 고려해야할 상황이 많아져 코드를 해석하는것이 어려울 수도 있습니다.
+
+```
+async function logName() {
+  let user = await fetchUser('domain.com/users/1')
+  if (user.id === 1) {
+    console.log(user.name)
+  }
+}
+```
+
+위 코드는 원래 코드에 async와 await의 개념을 적용하여 우리가 바라는 동작을 callback 패턴을 사용하지 않고 자연스래 동작해줍니다.
+
+async와 await를 더 자세하게 알아봅시다.
+
+```
+async function 함수() {
+  await 비동기 처리 함수()
+}
+```
+
+전체 동작을 통솔하는 함수의 앞에 async 예약어를 달아줍니다. 그 후에 비동기 처리가 필요한 함수 앞에 await 예약어를 달아줍니다. 주의해야할 점은 비동기 처리 함수가 반드시 Promise 객체를 반환해야 await의 동작이 의도한 대로 흘러갑니다.
+
+몇가지 예제 코드를 더 살펴보겠습니다.
+
+```
+function fetchItems() {
+  return new Promise(function(resolve, reject) {
+    let items = [1,2,3]
+    resolve(items)
+  })
+}
+
+async function logItems() {
+  let resultItems = await fetchItems()
+  console.log(resultItems)
+}
+```
+
+fetchItems() 함수는 Promise 객체를 반환하는 함수입니다. Promise 객체는 JavaScript 비동기 처리를 위해 존재합니다. fetchItems() 함수를 실행하면 Promise 객체가 Resolved(이행) 상태가 되며 return 값은 items 변수의 배열이 됩니다.
+
+logItems() 함수는 fetchItems() 함수의 return 값인 items 배열이 resultItems 변수에 담깁니다.
+
+따라서 [1,2,3] 이 출력됩니다.
+
+await을 사용하지 않았다면 데이터를 받아온 시점에 console을 출력할 수 있도록 callback 패턴이나 .then() 등의 방식을 사용해야 했을 겁니다. 하지만 async, await 문법 덕에 비동기 처리에 대한 사고를 온종일 하고 있지 않아도 되게 된것입니다.
+
+이 실용적인 문법이 가장 효율적으로 이용되는 순간은 여러 개의 비동기 처리 코드를 다룰 때입니다.
+
+```
+function fetchUser() {
+  let url = 'https://domain.type.com/user/1'
+  return fetch(url).then(function(response) {
+    return response.json()
+  })
+}
+
+function fetchTodo() {
+  let url = 'https://domain.type.com/user/1'
+  return fetch(url).then(function(response) {
+    return response.json()
+  })
+}
+```
+
+위 함수들은 각각 사용자의 정보와 할 일에 대한 정보가 담긴 Promise 객체를 반환한다고 가정해봅니다.
+
+이 두 함수를 이용하여 할 일의 제목을 출력한다고 하면 아래와 같은 로직이 필요합니다.
+
+1. fetchUser() 를 이용하여 사용자 정보 호출
+
+2. 받아온 사용자 아이디가 1이면 할 일 정보 호출
+
+3. 받아온 할 일 정보의 제목을 console에 출력
+
+```
+async function logTodoTitle() {
+  let user = await fetchUser() // 1
+  if (user.id === 1) { // 2
+    let todo = await fetchTodo()
+    console.log(todo.title) // 3
+  }
+}
+```
+
+logTodoTitle() 을 실행하면 console에 할 일의 제목이 출력될 것입니다. 위 비동기 처리 코드를 callback 패턴이나 Promise 객체만으로 처리 했다면 훨씬 코드가 길어졌을 것이고 불필요하게 반복되는 코드의 출현이나 가독성 하락 등 좋지 않은 상황이 연출되었을 겁니다. 이처럼 async, await 문법을 이용하여 코드의 가독성도 높이고 직관적인 구조를 형성할 수 있는 장점이 생깁니다.
+
+async & await의 예외처리는 try catch 방식으로 처리합니다.
+
+```
+async function logTodoTitle() {
+  try {
+    let user = await fetchUser()
+    if (user.id === 1) {
+      let todo = await fetchTodo()
+      console.log(todo.title)
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+```
+
+위의 코드를 실행하면 동작 중 발생한 네트워크 오류뿐만 아니라 간단한 타입 오류 등의 일반적인 오류까지도 catch로 잡아냅니다. 발견된 에러는 error 객체에 담기기 때문에 에러 유형에 맞는 에러 코드를 처리해주면 됩니다.
+
+
+
+
 
 
 get post
@@ -724,6 +859,8 @@ Returns middleware that only parses json and only looks at requests where the Co
 app.use(express.urlencoded())
 Returns middleware that only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option
 
-nodemon
+# 읽을거리
 
-화살표 함수
+## nodemon
+
+## 화살표 함수
