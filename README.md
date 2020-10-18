@@ -846,18 +846,58 @@ async function logTodoTitle() {
 
 위의 코드를 실행하면 동작 중 발생한 네트워크 오류뿐만 아니라 간단한 타입 오류 등의 일반적인 오류까지도 catch로 잡아냅니다. 발견된 에러는 error 객체에 담기기 때문에 에러 유형에 맞는 에러 코드를 처리해주면 됩니다.
 
+# 2. GET, POST 방식에 대하여
 
+HTML의 form 태그를 보면 method라는 요소가 있고 GET값과 POST값을 줄 수 있습니다.
 
+대부분의 애플리케이션의 기본이 되는 CRUD(Create Read Update Delete) 중에 각각 C(POST)와 R(GET)의 역할을 합니다.
 
+역할이 다르기 때문에 form 태그의 method 요소에 어떤 값이 들어가냐에 따라 form 태그에서 데이터를 전송하는 방식도 달라집니다.
 
+흔히 GET 방식은 'url?id=myId&pw=myPw' 이러한 형식을 취합니다.
 
-get post
+사용자에게 사용자가 어떤 값을 전송했는지 훤히 보여주는 셈입니다. 또한 전송 받은 데이터로 어떤 작업을 할지도 예측할 수 있습니다.
 
+평소엔 별 문제가 없겠지만 만약 우리가 url을 누군가에게 전송해야 합니다. 혹은 공유해야 할 상황입니다. 자신의 아이디와 비밀번호 혹은 노출되어선 안되는 정보가 타인에게 노출될 수 있습니다.
+
+이러한 GET 방식은 자신이 어떤 데이터를 읽어들였고 타인에게 자신이 어떤 데이터를 읽어들였는지 공유할 때는 유용하겠지만 개인적인 정보, 공유되어선 안되는 정보가 포함될 때는 적합하지 않습니다.
+
+때문에 개인정보나 그 외 여러 중요한 정보들은 POST 방식으로 데이터가 전송됩니다.
+
+GET 방식으로 전송하던 데이터를 POST 방식으로 전송한다고 해서 특별히 눈에 뛰는건 url 라인에 사용자가 전송한 데이터가 보이지 않는다는 것 뿐이고 이는 개발자 혹은 사용자가 의도한 행동입니다.
+
+하지만 여기서 기존 코드에 문제가 발생합니다.
+
+데이터를 받는 쪽에서도 받는 방식이 달라집니다.
+
+즉 데이터를 받아서 표현 혹은 사용하는 방법에 변화를 주어야 합니다.
+
+Node.js의 express 프레임워크를 예시로 들자면
+
+```
+// 기존
+const express = require('express')
+const app = express()
+
+// 추가
 app.use(express.json())
-Returns middleware that only parses json and only looks at requests where the Content-Type header matches the type option.
-
 app.use(express.urlencoded())
-Returns middleware that only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option
+```
+
+위 코드를 추가하여 express 객체를 담은 app의 기능을 업데이트 해야만 새로운 방식으로 데이터를 받을 수 있습니다.
+
+```
+app.post('/robot', function (req, res) {
+  const { body: { id, pw} } = req
+  res.send(`title is ${id} name is ${pw}`)
+})
+```
+
+app의 함수를 사용할 때도 app.get이 아닌 app.post로 데이터를 받아야하고 데이터를 사용할 때도 'const { body: { id, pw} } = req' 와 같이 한층 복잡한 과정을 거칩니다.
+
+위 코드를 해석하자면 form 태그의 action으로 혹은 사용자의 요청으로 'domain/robot'으로 이동했을 때 POST 방식으로 데이터(req/requst 즉 요청)를 받을 것이고 전달 받은 데이터(req) 속 form 에 입력 받은 'name=id' 와 'name=pw'의 데이터를 변수로 저장하겠다는 의미입니다.
+
+반환(res/response)할 때 'title is ${id} name is ${pw}' 즉, 문장에 사용자가 입력한 데이터를 반영하여 출력합니다.
 
 # 읽을거리
 
