@@ -901,6 +901,43 @@ app의 함수를 사용할 때도 app.get이 아닌 app.post로 데이터를 받
 
 # 읽을거리
 
-## nodemon
+## nodemon을 활용한 변경 내용 실시간 반영
+
+npm의 서비스 중 nodemon을 활용하여 서버를 자동으로 저장하고 실시간 변경사항을 반영할 수 있습니다.
+
+우선 작업하는 폴더로 이동하여 터미널에
+
+```
+npm init
+```
+
+입력하여 package.json 파일의 생성을 돕습니다.
+
+(* 참고: 작업중인 폴더명에 한글이 섞이면 오류가 발생할수도 있습니다.)
+
+```
+npm install nodemon
+```
+
+을 입력하여 추가적으로 nodemon에 대한 정보를 npm package에 담습니다.
+
+```
+npm install --save-dev nodemon
+```
+
+을 입력하면 설치된 nodemon이 package.json 파일에서 "devDependencies" 의 아래로 이동한걸 볼 수 있습니다.
+
+package.json 파일에서 "scripts" 부분에 "dev"를 추가하고 아래와 같이 설정합니다.
+
+```
+"scripts": {
+    . . .
+    "dev": "nodemon 현재 폴더를 기준으로 실행할 js파일의 위치",
+    . . .
+  }
+```
+
+이렇게 설정하고 현재 작업중인 폴더의 터미널에 npm run dev를 입력하면 "scripts" 에 설정한 "dev" 명령어가 발동하며 서버를 재시작하지 않아도 코드의 변경내용이 실시간으로 적용됩니다.
 
 ## 화살표 함수
+
