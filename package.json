@@ -7,8 +7,8 @@
     "nodemon": "^2.0.5"
   },
   "scripts": {
-    "start": "node ./10_15/index.js",
-    "dev": "nodemon ./10_15/index.js",
+    "start": "node ./10_22/index.js",
+    "dev": "nodemon ./10_22/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
