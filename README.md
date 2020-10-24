@@ -1,3 +1,7 @@
+코드를 사용하길 경우 터미널에 'npm install'을 입력하여 실습에 필요한 node_modules 들을 다운로드할 수 있습니다.
+
+(* 참고: package.json 파일에 있는 dependencies(종속성)를 인식하여 코드 작동에 필요한 모듈들이 자동으로 다운로드 됩니다.)
+
 # 10월 8일자 수업
 
 # 1. Node.js 설치
@@ -1027,3 +1031,132 @@ console.log(sum(1, 2))
 ```
 
 이처럼 다양한 방식으로 화살표 함수를 활용할 수 있고 익숙해지면 다양한 동작을 간결하게 구현할 수 있습니다.
+
+# 10월 22일자 수업
+
+# 로그인/회원가입 틀 잡기
+
+전에 배운 개념들을 복습하는 차원에서 로그인/회원가입/유저정보확인 시스템을 간단하게 만들어봅시다.
+
+우선 아래와 같은 구조로 폴더 및 파일을 생성해주세요.
+
+* Node 폴더
+  * public
+    * index.html
+    * registry.html
+  * index.js
+
+index.js 파일에는 아래와 같은 코드를 입력해주세요.
+
+```
+// 1
+const express = require('express')
+const app = express()
+
+app.use(express.json())
+app.use(express.urlencoded())
+app.use(express.static('./10_22/public'))
+```
+
+이 부분은 간단하게 설명하면 'npm install'로 불러온 express 프레임워크를 변수로 저장하여 사용하고 express 오브젝트를 설정해주거나 하는 부분입니다.
+
+```
+const users = []
+```
+
+users에는 회원가입으로 저장된 user 데이터를 저장할 예정입니다.
+
+```
+// 2
+app.post('/login', function (req, res) {
+  const { body: { id, pw} } = req
+  res.send(`login success ${id} ${pw}`)
+})
+
+app.post('/registry', function (req, res) {
+  const { body: { id, pw, name, sex} } = req
+  users.push({ id, pw, name, sex })
+  res.send(`회원가입이 완료되었습니다. ${id} ${pw} ${name} ${sex}`)
+})
+
+app.get('/users', (req, res) => {
+  res.json(users)
+})
+```
+
+form의 요소 중 action과 관련이 깊은 부분입니다. form에 데이터를 전송할 때 action에 지정된 이름을 url에 반영하여 url/action과 같은 형식으로 데이터를 이동시킵니다. 즉, 위 코드들은 action으로 이동 시킨 데이터 혹은 생성될 페이지에 해당하는 데이터 등을 받아내고 필요한 작업을 실행하는 코드입니다.
+
+```
+// 3
+const port = 8005
+app.listen(port, () => {
+  console.log(`server is running on port: ${port}`)
+})
+```
+
+서버를 실행하며 서버가 실행된 것을 console.log로 출력해서 알립니다.
+
+index.html 파일의 body 태그 안에는
+
+```
+<div class='wrap'>
+    <div class="login-form center">
+      <form action="/login" method="post">
+        <h1 class='login-form-title'>I am Robot!</h1>
+        <div>
+          <input type="text" name="id" class='login-form-input' placeholder="아이디">
+        </div>
+        <div>
+          <input type="password" name="pw" class='login-form-input' placeholder="비밀번호">
+        </div>
+        <div style="margin-top: 10px;">
+          <input type="checkbox" name="" id="rembmer-user"> <label for="rembmer-user" style="user-select: none;">로그인 유지하기</label>
+        </div>
+        <button class='login-form-submit'>로그인</button>
+        <a href="/registry.html">회원가입</a>
+      </form>
+    </div>
+  </div>
+```
+
+위 코드를 입력해주고 registry.html의 body 태그 안에는 아래 코드를 입력해주세요.
+
+```
+<div class='wrap'>
+    <div class="login-form center">
+      <form action="/registry" method="post">
+        <h1 class='login-form-title'>회원가입</h1>
+        <div>
+          <input type="text" name="id" class='login-form-input' placeholder="아이디">
+        </div>
+        <div>
+          <input type="password" name="pw" class='login-form-input' placeholder="비밀번호">
+        </div>
+        <div>
+          <input type="text" name="name" class='login-form-input' placeholder="이름">
+        </div>
+        <div>
+          <input type="text" name="sex" class='login-form-input' placeholder="성별">
+        </div>
+        <div style="margin-top: 10px;">
+          <input type="checkbox" name="" id="rembmer-user"> <label for="rembmer-user" style="user-select: none;">로그인 유지하기</label>
+        </div>
+        <button class='login-form-submit'>회원가입</button>
+        <a href="/">로그인</a>
+      </form>
+    </div>
+  </div>
+```
+
+작업을 완료했다면 터미널에 'node index.js' 혹은 'npm run dev'를 입력하여 서버를 실행해주세요.
+
+Link: [localhost:8000][serverlink]
+
+[serverlink]: "http://localhost:8000"
+
+index.js의 static 경로로 설정한 public 폴더 안에 있는 index.html 이 보여질것입니다.
+
+아이디와 비밀번호를 입력하고 로그인하면 성공 표시와 입력한 내용들이 출력됩니다.
+
+회원가입을 한 후에 'localhost/users'로 이동하면 서버를 작동하고 회원가입한 내용들이 json 형태로 저장된 것을 확인할 수 있습니다.
+
