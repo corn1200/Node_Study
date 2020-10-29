@@ -1,14 +1,15 @@
 {
   "main": "index.js",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mongoose": "^5.10.11"
   },
   "devDependencies": {
     "nodemon": "^2.0.5"
   },
   "scripts": {
-    "start": "node ./10_22/index.js",
-    "dev": "nodemon ./10_22/index.js",
+    "start": "node ./10_29/index.js",
+    "dev": "nodemon ./10_29/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
