@@ -1,4 +1,4 @@
-코드를 사용하길 경우 터미널에 'npm install'을 입력하여 실습에 필요한 node_modules 들을 다운로드할 수 있습니다.
+코드를 사용하실 경우 터미널에 'npm install'을 입력하여 실습에 필요한 node_modules 들을 다운로드할 수 있습니다.
 
 (* 참고: package.json 파일에 있는 dependencies(종속성)를 인식하여 코드 작동에 필요한 모듈들이 자동으로 다운로드 됩니다.)
 
