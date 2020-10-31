@@ -1,4 +1,5 @@
 const express = require('express')
+const model = require('./lib/mongoose')
 const app = express()
 
 app.use(express.json())
@@ -22,14 +23,14 @@ app.post('/login', function (req, res) {
 })
 
 app.post('/registry', function (req, res) {
-  const { body: { id, pw, name, sex} } = req
-  users.push({ id, pw, name, sex })
-  // js에서 const 배열에 push를 하는건 문제가 없다
-  res.send(`회원가입이 완료되었습니다. ${id} ${pw} ${name} ${sex}`)
+  const { body: { id, pw, name } } = req
+  model.User.create({ id, pw, name})
+  res.redirect('/')
 })
 
-app.get('/users', (req, res) => {
-  res.json(users)
+app.get('/users', async (req, res) => {
+  const data = await model.User.find({})
+  res.json(data)
 })
 
 const port = 8005
