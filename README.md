@@ -1188,8 +1188,54 @@ cmd를 실행시키고 'mongo'를 입력했을 때 설치한 MongoDB의 버전�
 
 # 10월 29일자 수업
 
-# 실제 회원 목록 확인해서 로그인하기
+# 회원 목록 확인해서 로그인하기
+
+이전까진 로그인 화면에서 입력한 데이터를 로그인 이후 화면에 반영해주는 방식이었습니다.
+
+```
+app.post('/login', function (req, res) {
+  const { body: { id, pw} } = req
+  res.send(`login success ${id} ${pw}`)
+})
+```
+
+하지만, 실제 운영하는 서비스에선 회원 목록을 확인하고 실존하는 회원인지 확인할 필요가 있습니다.
+
+```
+const users = [{
+  id: 'teemo1',
+  pw: 'teemo2',
+  name: 'top'
+}]
+```
+
+회원에 대한 정보를 저장하는 상수입니다.
+
+```
+app.post('/registry', function (req, res) {
+  const { body: { id, pw, name, sex} } = req
+  users.push({ id, pw, name, sex })
+  // js에서 const 배열에 push를 하는건 문제가 없다
+  res.send(`회원가입이 완료되었습니다. ${id} ${pw} ${name} ${sex}`)
+})
+```
+
+회원가입을 한 후에 상수 users 배열 안에 객체 추가를 합니다.
+
+```
+app.post('/login', function (req, res) {
+  const { body: { id, pw} } = req
+  for(let i = 0; i < users.length; i++) {
+    if(users[i].id === id && users[i].pw === pw) {
+      res.send(`login success ${id} ${pw}`)
+    }
+  }
+  res.send(`login failed ${id} ${pw}`)
+})
+```
+
+그래서 위와 같이 조건문이나 반복문을 이용해 실존하는 회원 목록을 참조하고 배열 안에 필요한 조건을 만족하는 회원정보가 있다면 회원이 존재한다고 판단하여 로그인 성공 메세지를, 반대의 경우엔 실패 메세지를 출력합니다.
 
 # MongoDB 사용하기
 
-# 더 읽어보기
+# 읽을거리
