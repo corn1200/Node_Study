@@ -1355,5 +1355,3 @@ app.get('/users', async (req, res) => {
 위 코드에선 이전에 배운 async와 await의 개념이 적용되는데 async에 해당하는 함수에 돌입하면 await에서 비동기 처리를 완료할 때까지 코드가 진행되지 않습니다.
 
 User.find 작업에는 mongoose에 작성한 connect 부분이 작동할 것이고 여기서 then 안의 내용이 반환(Promise 객체를 반환) 하면서 DB데이터를 불러와 저장한 후에 화면에 출력합니다.
-
-# 읽을거리
