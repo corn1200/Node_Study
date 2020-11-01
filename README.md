@@ -1040,7 +1040,7 @@ console.log(sum(1, 2))
 
 우선 아래와 같은 구조로 폴더 및 파일을 생성해주세요.
 
-* Node 폴더
+* Node 프로젝트
   * public
     * index.html
     * registry.html
@@ -1236,6 +1236,124 @@ app.post('/login', function (req, res) {
 
 그래서 위와 같이 조건문이나 반복문을 이용해 실존하는 회원 목록을 참조하고 배열 안에 필요한 조건을 만족하는 회원정보가 있다면 회원이 존재한다고 판단하여 로그인 성공 메세지를, 반대의 경우엔 실패 메세지를 출력합니다.
 
+이제 실제로 회원가입한 데이터가 users 에 남아 로그인시 해당 데이터가 반영됩니다.
+
 # MongoDB 사용하기
+
+현재는 user 라는 상수에 객체를 추가함으로써 회원관리를 하지만 이는 매우 불안하고 부적절한 방법입니다.
+
+이유는 서버를 재시작하면 알 수 있습니다. 현재 우리는 개발 혹은 테스트라는 명목으로 코드를 실행하기 때문에 서버 재시작과 동시에 회원가입(저장된 회원)한 데이터가 사라지는게 당연합니다.
+
+하지만, 언제까지나 테스트만을 위한 코드를 작성할 순 없습니다. 저번에 설치한 MongoDB를 실제로 사용하여 서버(Node)에서 실행한 여러 동작들이 DB에 저장되어 서버를 재시작해도 회원들의 정보가 유지되도록 코드를 작성해봅시다.
+
+우선, MongoDB와 Node.js를 함께 사용하기 위해 터미널에
+
+```
+npm i mongoose
+```
+
+를 입력하여 mongoose 프레임워크를 설치합니다.
+
+index.js 파일에 아래 코드를 추가합니다.
+
+```
+const { connect, Schema, model} = require('mongoose')
+```
+
+위의 명령어가 터미널에서 정상적으로 수행되었다면 node_modules에 mongoose가 추가되었을 것입니다.
+
+require는 Node.js의 자체 명령어(함수)입니다. 이로써 node_modules 안을 살피고 mongoose를 발견하면 그 내용을 connect, Schema, model이라는 변수에 차례로 저장합니다.
+
+(* 참고: 변수의 이름은 중요하지 않습니다. require + 패키지 or 프레임워크 명의 코드가 작동할 때 들어가는 데이터에 대한 순서가 고정이기 때문에 데이터를 받는 순서로 인해 실제 들어가는 데이터가 정해집니다.)
+
+```
+connect('mongodb://localhost/blog', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true
+}).then(() => {
+  console.log('MongoDB is connected')
+})
+```
+
+connect를 mongoose에서 MongoDB와 서버를 연결합니다. 위 코드를 살펴보면 localhost의 서버와 mongodb를 연결하며 서버의 설정 등이 있습니다.
+
+then 부분은 async & await 부분에서 설명한 부분 중 promise객체를 반환해야 한다 라는 설명과 관련이 있습니다.
+
+```
+const userSchema = Schema({
+    id: { type: String, required: true, unique: true},
+    pw: { type: String, required: true},
+    name: { type: String, required: true},
+    school: { type: String, default: '디지텍'},
+    age: { type: Number, required: true, default: 18},
+    isMarried: { type: Boolean, default: false},
+    isDead: { type: Boolean, default: false}
+})
+```
+
+위 코드는 userSchema 변수에 회원 정보에 대해서 저장하는 것입니다. type은 데이터의 저장 타입, required는 중복저장 가능 여부, default는 데이터의 기본값입니다.
+
+간단하게 객체지향언어에서의 클래스 필드, SQL 데이터베이스에서의 table이라고 생각하면 됩니다.
+
+실제론 collection이라고 불립니다.
+
+```
+const userModel = model('user', userSchema)
+```
+
+위 코드는 DB에 실제 collection을 생성하는 과정입니다. userSchema는 그저 변수일 뿐이고 그 데이터를 바탕으로 user라는 collection에 저장합니다. (실제론 users가 됩니다. 이는 MongoDB의 특징 중 하나로 항상 복수형태로 나타내는것입니다.)
+
+만약 이대로 index.js에 작성한 상태라면 코드의 가독성이 많이 떨어질것입니다.
+
+폴더의 구조를 아래와 같이 편집합니다.
+
+* Node 프로젝트
+  * lib
+    * mongoose.js
+
+그리고 위에 적은 내용을 index.js에서 잘라내고 그대로 mongoose.js에 입력합니다.
+
+추가적으로 mongoose.js에는 아래 내용을 입력합니다.
+
+```
+module.exports = {
+    User: userModel
+}
+```
+
+mongoose.js를 여타 패키지나 프레임워크 모듈처럼 사용하기 위한 작업입니다.
+
+다시 index.js로 돌아와서 아래 내용을 추가합니다.
+
+```
+const model = require('./lib/mongoose')
+```
+
+기본적으로 require 함수는 node_modules에서 모듈을 찾습니다. 하지만 위처럼 경로를 정해놓으면 경로로 이동하여 변수에 해당 내용을 저장합니다.
+
+index.js의 회원가입 부분과 유저확인 부분을 아래처럼 수정합니다.
+
+```
+app.post('/registry', function (req, res) {
+  const { body: { id, pw, name } } = req
+  model.User.create({ id, pw, name})
+  res.redirect('/')
+})
+```
+
+model 변수의 User 객체를 찾아 id, pw, name을 가진 회원정보를 생성하고 실제 DB에 저장합니다.
+
+```
+app.get('/users', async (req, res) => {
+  const data = await model.User.find({})
+  res.json(data)
+})
+```
+
+위 코드에선 이전에 배운 async와 await의 개념이 적용되는데 async에 해당하는 함수에 돌입하면 await에서 비동기 처리를 완료할 때까지 코드가 진행되지 않습니다.
+
+User.find 작업에는 mongoose에 작성한 connect 부분이 작동할 것이고 여기서 then 안의 내용이 반환(Promise 객체를 반환) 하면서 DB데이터를 불러와 저장한 후에 화면에 출력합니다.
 
 # 읽을거리
