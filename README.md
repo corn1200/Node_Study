@@ -1355,3 +1355,64 @@ app.get('/users', async (req, res) => {
 위 코드에선 이전에 배운 async와 await의 개념이 적용되는데 async에 해당하는 함수에 돌입하면 await에서 비동기 처리를 완료할 때까지 코드가 진행되지 않습니다.
 
 User.find 작업에는 mongoose에 작성한 connect 부분이 작동할 것이고 여기서 then 안의 내용이 반환(Promise 객체를 반환) 하면서 DB데이터를 불러와 저장한 후에 화면에 출력합니다.
+
+# 11월 05일자 수업
+
+# crypto를 이용한 암호화
+
+서버나 데이터베이스를 다룰 때나 혹은 회원관리에 있어서 데이터의 암호화는 중요합니다.
+
+crypto 라는 모듈을 이용하여 이전 회원가입 기능에 암호화 기능을 추가합시다.
+
+우선 아래와 같이 crypto 모듈을 불러와야 합니다.
+
+```
+const crypto = requir ('crypto')
+```
+
+우리가 이전에 만든 회원가입 코드는 전달 받은 내용을 그대로 추가하는 방식이었습니다.
+
+```
+app.post('/registry', function (req, res) {
+  const { body: { id, pw, name } } = req
+  model.User.create({ id, pw, name})
+  res.redirect('/')
+})
+```
+
+아래는 EPW 변수에 crypto 모듈을 이용하여 기존 id와 pw의 조합을 Hash Code 로 변환시켜서 알아볼 수 없게 만든 결과값을 저장한 것입니다.
+
+그리고 기존에 전달 받은 내용을 그대로 추가하는 것이 아닌 pw Column에 EPW 를 저장하는 것으로 내용을 바꿉니다.
+
+그럼 실제 비밀번호는 아무도 모르게 되고 저장된 값과 로그인시 입력하는 값을 같은 규칙으로 변환하여 대조함으로써 데이터를 숨길 수 있게 됩니다.
+
+```
+app.post('/registry', function (req, res) {
+  const { body: { id, pw, name } } = req
+
+  const EPW = crypto.createHash('sha512').update(id + 'd!6b&^a' + pw).digest('base64')
+  model.User.create({ id, pw: EPW, name })
+
+  res.redirect('/')
+})
+```
+
+로그인도 같은 방식으로 입력받은 내용을 Hash 알고리즘으로 변환하여 로그인 시 저장된 데이터와 일치하게 합니다.
+
+```
+app.post('/login', async function (req, res) {
+  const { body: { id, pw} } = req
+
+  const EPW = crypto.createHash('sha512').update(id + 'd!6b&^a' + pw).digest('base64')
+
+  const data = await model.User.find({id, pw: EPW})
+
+  if (data.length) return res.send(`login success`)
+
+  res.send(`login failed`)
+})
+```
+
+위에서 id와 pw를 섞어 조합을 하였는데 이유는 id는 중복할 수 없고 pw는 중복 가능성이 있기 때문입니다. Hash 의 방식으로 데이터를 변조하는건 특정 규칙을 따르기 때문에 같은 값을 입력하면 비록 알아볼 수 없는 내용이 되더라도 같은 결과가 나옵니다.
+
+때문에 불의의 사건을 예방하기 위해 중복될 수 없는 id와 함께 특정 값을 추가하여 Hash 로 변환된 값들이 중복되지 않게 합니다.
