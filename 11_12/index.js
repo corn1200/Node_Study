@@ -1,7 +1,8 @@
 const express = require('express')
-const model = require('./lib/mongoose')
+const User = require('./models/user')
 const app = express()
 const crypto = require('crypto')
+require("./lib/mongoose")
 
 app.use(express.json())
 app.use(express.urlencoded())
@@ -20,7 +21,7 @@ app.post('/login', async function (req, res) {
 
   const EPW = crypto.createHash('sha512').update(id + 'd!6b&^a' + pw).digest('base64')
 
-  const data = await model.User.find({id, pw: EPW})
+  const data = await User.find({id, pw: EPW})
 
   if (data.length) {
     session = id
@@ -36,13 +37,13 @@ app.post('/registry', function (req, res) {
 
   // encryptedPassword
   const EPW = crypto.createHash('sha512').update(id + 'd!6b&^a' + pw).digest('base64')
-  model.User.create({ id, pw: EPW, name })
+  User.create({ id, pw: EPW, name })
 
   res.redirect('/')
 })
 
 app.get('/users', async (req, res) => {
-  const data = await model.User.find({}, { pw: 0})
+  const data = await User.find({}, { pw: 0})
   res.json(data)
 })
 
