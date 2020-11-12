@@ -14,6 +14,8 @@ app.use((req, res, next) => {
 let session = null;
 
 app.post('/login', async function (req, res) {
+  if (session) return res.send('로그인 이미됨')
+
   const { body: { id, pw} } = req
 
   const EPW = crypto.createHash('sha512').update(id + 'd!6b&^a' + pw).digest('base64')
@@ -21,6 +23,8 @@ app.post('/login', async function (req, res) {
   const data = await model.User.find({id, pw: EPW})
 
   if (data.length) {
+    session = id
+    console.log(session)
     return res.redirect('/')
   }
 
@@ -40,6 +44,11 @@ app.post('/registry', function (req, res) {
 app.get('/users', async (req, res) => {
   const data = await model.User.find({}, { pw: 0})
   res.json(data)
+})
+
+app.get('/logout', function (req, res) {
+  session = null;
+  return res.redirect('/')
 })
 
 const port = 8005
