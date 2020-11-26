@@ -11,8 +11,8 @@
     "nodemon": "^2.0.6"
   },
   "scripts": {
-    "start": "node ./11_19/index.js",
-    "dev": "nodemon ./11_19/index.js",
+    "start": "node ./11_26/index.js",
+    "dev": "nodemon ./11_26/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
