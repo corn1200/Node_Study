@@ -35,14 +35,21 @@
                 <button>댓글작성</button>
             </form>
             <% } %>
-            <!-- <ul class='comment-list'>
-                <li>
-                    <p>작성자: ㅁㅁ</p>
-                    <p>어쩌구 저쩌구</p>
-                    <p>2020-12-03T10:41:40.268Z</p>
-                    <button>삭제</button>
-                </li>
-            </ul> -->
+            <ul class='comment-list'>
+                <% post.comments.forEach((comment) => { %>
+                    <li>
+                        <p>작성자: <%= comment.writer %></p>
+                        <p><%= comment.content %></p>
+                        <p><%= comment.createAt.toISOString() %></p>
+                        <% if (user && user._id === comment.writer) { %>
+                            <form action="/posts/<%= post._id %>/comments/<%= comment._id %>?_method=DELETE" method="POST">
+                                <input type="hidden" name="_method" value="DELETE" />
+                                <button>삭제</button>
+                            </form>
+                        <% } %>
+                    </li>
+                <% }); %>
+            </ul>
         </div>
     </div>
 </body>

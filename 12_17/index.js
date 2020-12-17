@@ -126,6 +126,22 @@ app.get('/logout', function (req, res) {
   res.redirect('/')
 })
 
+app.delete('/posts/:postId/comments/:commentId', async (req, res) => {
+  const { postId, commentId } = req.params
+
+  await Post.updateOne({ 
+    _id: postId
+   }, { 
+    $pull: { 
+      comments: { 
+        _id: commentId 
+      } 
+    } 
+  })
+
+  res.redirect(`/posts/${postId}`)
+})
+
 const port = 8005
 app.listen(port, () => {
   console.log(`server is running on port: ${port}`)
